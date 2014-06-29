@@ -1,0 +1,11 @@
+application: mscloud-emendez
+
+dispatch:
+  - url: "*/"
+    module: default
+
+  - url: "*/nhemu*"
+    module: nhemu
+
+  - url: "*/jogua*"
+    module: jogua
