@@ -1,4 +1,4 @@
-package nhemu
+package jogua
  
 import (
 	"fmt"
@@ -10,5 +10,5 @@ func init() {
 }
  
 func handleStart(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "nhemu.handleStart")
+	fmt.Fprintln(w, "jogua.handleStart")
 }

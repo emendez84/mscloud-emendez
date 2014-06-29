@@ -1,19 +1,11 @@
 application: mscloud-emendez
-# No version required, this does routing independent of version
 
 dispatch:
-  # Default module serves the typical web resources and all static resources.
-  - url: "*/favicon.ico"
+  - url: "*/"
     module: default
 
-  # Default module serves simple hostname request.
-  - url: "mscloud-emendez.appspot.com/"
-    module: default
-
-  # Send all mobile traffic to the mobile frontend.
-  - url: "*/nhemu/*"
+  - url: "*/nhemu*"
     module: nhemu
 
-  # Send all work to the one static backend. 
-  - url: "*/jogua/*"
+  - url: "*/jogua*"
     module: jogua
