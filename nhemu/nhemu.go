@@ -6,9 +6,14 @@ import (
 )
  
 func init() {
-	http.HandleFunc("/", handleStart)
+	http.HandleFunc("/nhemu/", handleStart)
+    http.HandleFunc("/nhemu/check", checkSells)
 }
  
 func handleStart(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "nhemu.handleStart")
+}
+
+func checkSells(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "checkSells")
 }
