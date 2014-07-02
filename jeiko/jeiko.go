@@ -32,13 +32,17 @@ func init() {
  
 func handleStart(w http.ResponseWriter, r *http.Request) {
     c := appengine.NewContext(r)
-    
+
+	c.Infof("Obteniendo lista de stocks")
+
+	c.Debugf("Consultando datastore.")
+
     // This query it's not optimized, it should bing only the keys, not all the data
     q := datastore.NewQuery("Stock").Limit(10)
     
     var stocks []Stock
     if _, err := q.GetAll(c, &stocks); err != nil {
-      //fmt.Fprintln(w, "Error al obtener los datos de stock")
+		c.Errorf("Error al obtener los stocks desde el datastore. %v", err)
     }
     
 	initStock(c, w, stocks)
@@ -56,11 +60,11 @@ func initStock(c appengine.Context, w http.ResponseWriter, stocks []Stock) {
         keyGoogle := datastore.NewIncompleteKey(c, "Stock", nil)
         keyAmazon := datastore.NewIncompleteKey(c, "Stock", nil)
         if _, err := datastore.Put(c, keyGoogle, googleStock); err != nil {
-            //fmt.Fprintln(w, "Error al inicializar los valores de google...")
+			c.Errorf("Error al inicializar los valores de google. %v", err)
         }
         if _, err := datastore.Put(c, keyAmazon, amazonStock); err != nil {
-           //fmt.Fprintln(w, "Error al inicializar los valores de amazon...")
+			c.Errorf("Error al inicializar los valores de amazon. %v", err)
         }
-        //fmt.Fprintln(w, "Amazon key %s", amazonStock.)
+        c.Debugf("datastore inicializado con los valores de prueba inciales")
     }
 }
