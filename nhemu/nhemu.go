@@ -2,6 +2,7 @@ package nhemu
  
 import (
 	"fmt"
+	"encoding/json"
 	"net/http"
 	"appengine"
 	"appengine/datastore"
@@ -49,8 +50,17 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 	data.Puntos = data.Puntos - sellField
 
 	datastore.Put(c, key, &data)
+	
+    b, err := json.Marshal(data)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    
+    fmt.Fprintln(w, string(b))
 
-	fmt.Fprintln(w, "Empresa: ", data.Empresa, "Puntos: ", data.Puntos)
 }
 
 func checkSells(w http.ResponseWriter, r *http.Request) {
