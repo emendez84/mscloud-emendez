@@ -1,7 +1,8 @@
 package jeiko
  
 import (
-    "html/template"
+    "fmt"
+    "encoding/json"
 	"net/http"
     "appengine"
     "appengine/datastore"
@@ -11,20 +12,6 @@ type Stock struct {
         Empresa  string
         Puntos int
 }
-
-var homeTemplate = template.Must(template.New("home").Parse(`
-<html>
-  <head>
-    <title>Stock Market Values</title>
-  </head>
-  <body>
-    {{range .}}
-      <p>{{.Empresa}}</p>
-      <p>{{.Puntos}}</p>
-    {{end}}
-  </body>
-</html>
-`))
  
 func init() {
 	http.HandleFunc("/", handleStart)
@@ -38,7 +25,7 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 	c.Debugf("Consultando datastore.")
 
     // This query it's not optimized, it should bing only the keys, not all the data
-    q := datastore.NewQuery("Stock").Limit(10)
+    q := datastore.NewQuery("Stock")
     
     var stocks []Stock
     if _, err := q.GetAll(c, &stocks); err != nil {
@@ -47,9 +34,16 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
     
 	initStock(c, w, stocks)
     
-    if err := homeTemplate.Execute(w, stocks); err != nil {
-        http.Error(w, err.Error(), http.StatusInternalServerError)
+    b, err := json.Marshal(stocks)
+    if err != nil {
+        fmt.Println(err)
+        return
     }
+    
+    w.Header().Set("Content-Type", "application/json")
+    
+    fmt.Fprintln(w, string(b))
+    
 }
 
 func initStock(c appengine.Context, w http.ResponseWriter, stocks []Stock) {

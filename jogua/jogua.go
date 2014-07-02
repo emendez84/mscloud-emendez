@@ -2,6 +2,7 @@ package jogua
  
 import (
 	"fmt"
+	"encoding/json"	
 	"net/http"
 	"appengine"
 	"appengine/datastore"
@@ -48,5 +49,14 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 
 	datastore.Put(c, key, &data)
 
-	fmt.Fprintln(w, "Empresa: ", data.Empresa, "Puntos: ", data.Puntos)
+    b, err := json.Marshal(data)
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    
+    w.Header().Set("Content-Type", "application/json")
+    
+    fmt.Fprintln(w, string(b))
+
 }
