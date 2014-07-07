@@ -2,6 +2,11 @@ package jeiko
  
 import (
     "fmt"
+    "bufio"
+    "io"
+    "strings"
+    "strconv"
+    "os"
     "encoding/json"
 	"net/http"
     "appengine"
@@ -32,11 +37,11 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 		c.Errorf("Error al obtener los stocks desde el datastore. %v", err)
     }
     
-	initStock(c, w, stocks)
+	initStockFile(c, w, stocks)
     
     b, err := json.Marshal(stocks)
     if err != nil {
-        fmt.Println(err)
+        c.Errorf("Error en conversión del Json. %v", err)
         return
     }
     
@@ -48,7 +53,6 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 
 func initStock(c appengine.Context, w http.ResponseWriter, stocks []Stock) {
     if len(stocks) == 0 {
-        //fmt.Fprintln(w, "No existen empresas. Inicializando...")
         googleStock := &Stock{Empresa: "Google", Puntos:  1000}
         amazonStock := &Stock{Empresa: "Amazon",Puntos:  900}
         keyGoogle := datastore.NewIncompleteKey(c, "Stock", nil)
@@ -60,5 +64,48 @@ func initStock(c appengine.Context, w http.ResponseWriter, stocks []Stock) {
 			c.Errorf("Error al inicializar los valores de amazon. %v", err)
         }
         c.Debugf("datastore inicializado con los valores de prueba inciales")
+    }
+}
+
+func initStockFile(c appengine.Context, w http.ResponseWriter, stocks []Stock) {
+    c.Debugf("Inicializando por el archivo")
+    if len(stocks) == 0 {
+        f, err := os.Open("data.txt")
+        if err != nil {
+            c.Errorf("Error al leer el archivo. %v", err)
+        }
+        bf := bufio.NewReader(f)
+        for {
+            switch line, err := bf.ReadString('\n'); err {
+            case nil:
+                // valid line, echo it.  note that line contains trailing \n.
+                i,err := strconv.Atoi(strings.Fields(line)[1])
+                if err != nil{
+                    c.Errorf("Error de conversion de enteros. %v", err)
+                }
+                companyStock := &Stock{Empresa:strings.Fields(line)[0] ,Puntos:i}
+                keyCompany := datastore.NewIncompleteKey(c,"Stock",nil)
+                if _, err := datastore.Put(c, keyCompany, companyStock); err != nil {
+                    c.Errorf("Error al inicializar los valores. %v", err)
+                 }
+            case io.EOF:
+                if line > "" {
+                    // last line of file missing \n, but still valid
+                     i,err := strconv.Atoi(strings.Fields(line)[1])
+                    if err != nil{
+                        c.Errorf("Error de conversion de enteros. %v", err)
+                    }
+                    companyStock := &Stock{Empresa:strings.Fields(line)[0] ,Puntos:i}
+                    keyCompany := datastore.NewIncompleteKey(c,"Stock",nil)
+                    if _, err := datastore.Put(c, keyCompany, companyStock); err != nil {
+                        c.Errorf("Error al inicializar los valores. %v", err)
+                    }
+                }
+                return
+            default:
+                c.Errorf("Error en la lectura de la linea. %v", err)
+            }
+        }
+        c.Debugf("Archivo Leido")
     }
 }
