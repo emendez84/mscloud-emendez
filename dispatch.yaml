@@ -9,3 +9,6 @@ dispatch:
 
   - url: "*/jogua*"
     module: jogua
+
+  - url: "*/momohe*"
+    module: momohe
