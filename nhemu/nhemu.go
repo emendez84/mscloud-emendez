@@ -16,13 +16,13 @@ type Stock struct {
  
 func init() {
 	http.HandleFunc("/nhemu/", handleStart)
-    http.HandleFunc("/nhemu/check", checkSells)
 }
  
 func handleStart(w http.ResponseWriter, r *http.Request) {
 
 	c := appengine.NewContext(r)
 
+	c.Infof("Get the key from the URL")
 	// Get the key from the URL
 	keyField := r.FormValue("key")
 
@@ -30,6 +30,7 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 	key, err := datastore.DecodeKey(keyField)
 	if err != nil { // Couldn't decode the key
 		// Do some error handling
+		c.Errorf("Couldn't decode the key. Do some error handling. %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -38,12 +39,14 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 	var data Stock
 	err = datastore.Get(c, key, &data)
 	if err != nil { // Couldn't find the entity
+		c.Errorf("Couldn't find the entity. %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	sellField, err := strconv.Atoi(r.FormValue("sell"))
 	if err != nil {
+		c.Errorf("Couldn't string converter. %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -53,16 +56,13 @@ func handleStart(w http.ResponseWriter, r *http.Request) {
 	
     b, err := json.Marshal(data)
     if err != nil {
-        fmt.Println(err)
+    	c.Errorf("Json error. %v", err)
         return
     }
     
     w.Header().Set("Content-Type", "application/json")
     
+    c.Infof(string(b))
     fmt.Fprintln(w, string(b))
 
-}
-
-func checkSells(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "checkSells")
 }
